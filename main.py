@@ -130,7 +130,6 @@ def searchTweets(api,name="",n=0):
 
 
 def deleteTweet(api):
-    #http://www.mathewinkson.com/2015/03/delete-old-tweets-selectively-using-python-and-tweepy
     #TODO
     print("Delete tweets")
     #api.destroy_status(status.id)
