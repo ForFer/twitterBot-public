@@ -41,38 +41,80 @@ def Main():
                                  "9. Check trends\n"+
                                  "10. Exit\n") )
 
-        if(option==1):
+        if option==1:
             tweet(api)
-        elif(option==2):
+        elif option==2:
             getTweets(api)
-        elif(option==3):
+        elif option==3:
             deleteTweet(api)
-        elif(option==4):
+        elif option==4:
             viewOwnTweets(api)
-        elif(option==5):
+        elif option==5:
             viewOwnRetweets(api)
-        elif(option==6):
+        elif option==6:
             followUnfollow(api)
-        elif(option==7):
+        elif option==7:
             checkStats(api)
-        elif(option==8):
+        elif option==8:
             checkSentMessage(api)
-        elif(option==9):
+        elif option==9:
             checkTrends(api)
-        elif(option==10):
+        elif option==10:
             run=False
         else:
             print("uh oh, something went wrong, exitting program")
             run=False
 #Here ends the main
 
+def get_user(api):
+    return  input("Name of the user?\n")
 
 def tweet(api):
-
     status = input("Enter text to tweet\n")
     api.update_status(status)   
-    print("Sent")
-    print()
+    print("Tweet sent\n\n")
+
+def print_tweets(api,user,n):
+    tweets = api.user_timeline(screen_name = user,count=n)
+    i = 0
+    for tweet in tweets:
+        print(str(i) + '. ' +  tweet.text)
+        i+=1
+
+def try_again(api, error=1):
+    errorMessage = ''
+    if error == 0:
+        errorMessage="Wrong username"
+    print(errorMessage + " do you want to try again? (y/n)")
+    again = input()
+
+    if again.lower()=="yes" or again.lower()=='y':
+        return True
+    else:
+        return False
+
+def get_n(option=0):
+    s = ''
+    if option==0:
+        s ="How many tweets do you want to see?\n"
+    elif option==1:
+        s = "How many messages would you like to check?\n"
+    return int(input(s))
+
+
+def get_friend(api):
+    print("List of friends")
+    i = 0
+    friendList = []
+    for friend in api.friends():
+        print(str(i) + ". " + friend.screen_name)
+        friendList.append(friend.screen_name)
+        i+=1
+    index = int(input("Input number of selected friend\n"))
+    try:
+        return friendList[n-1]
+    except:
+        return None
 
 
 def getTweets(api, again=0):
@@ -81,70 +123,48 @@ def getTweets(api, again=0):
                    " b. From your list of friend\n"+        
                    " c. Go back, I pressed this option by mistake\n")
 
-    if(option is 'a' or again==1):
-        user = input("Name of the user?\n")
-        n = int(input("How many tweets do you want to see?\n"))
+    if option is 'a' or again==1:
+        user = get_user(api)
+        n = get_n(0)
         try:
-            tweets = api.user_timeline(screen_name = user,count=n)
-            for tweet in tweets:
-                print(tweet.text)
+            print_tweets(api, user, n)
         except:
-            print("Wrong username, do you want to try again? (y/n)")
-            tryAgain = input()
-            if(tryAgain=="yes" or tryAgain=='y'):
-                searchTweets(api,user,name)
-    elif(option is 'b'):
-        print("List of friends")
-        i = 0
-        for friend in api.friends():
-            print(str(i) + ". " + friend.screen_name)
-            i+=1
-        index = int(input("Input number of selected friend\n"))
-        n = int(input("How many tweets do you wish to see?\n"))
-        i = 0
-        name=''
-        for friend in api.friends():
-            if(i==index):
-               name=friend.screen_name 
-            i+=1
-        searchTweets(api,name,n)
+            if try_again(api,0:
+                search_tweets(api,user,name)
 
-    elif(option is 'c'):
+    elif option is 'b':
+        name = get_friend(api)
+        n = getNtweets()
+        search_tweets(api,name,n)
+
+    elif option is 'c':
         print("Going back, try to not miss this time ;) ")
         print()
     else:
         print("Uh oh, invalid option")
 
 
-def searchTweets(api,name="",n=0):
+def search_tweets(api,name="",n=0):
     try:
-        tweets = api.user_timeline(screen_name = name,count=n)
-        for tweet in tweets:
-            print(tweet.text)
+        print_tweets(api, user, n)
     except:
-        print("Wrong username, do you want to try again? (y/n)")
-        tryAgain = input()
-        if(tryAgain=="yes"):
+        if try_again(api,0:
             getTweets(again=1)
     print("#########################################")
 
 
 def deleteTweet(api):
+    #http://www.mathewinkson.com/2015/03/delete-old-tweets-selectively-using-python-and-tweepy
     #TODO
     print("Delete tweets")
     #api.destroy_status(status.id)
 
 def viewOwnTweets(api):
-    n = int(input("How many tweets would you like to see?\n"))
-    public_tweets = api.home_timeline(count=n)
-    i = 1
-    for tweet in public_tweets:
-        print(str(i) + ". " + tweet.text)
-        i+=1
-
+    n = get_n(0)
+    print_tweets(api, '', n)
 
 def viewOwnRetweets(api):
-    n = int(input("How many retweets would you like to see?\n"))
+    n = get_n(0)
     public_retweets = api.retweets_of_me(count=n)
     i = 1
     for tweet in public_retweets:
@@ -159,21 +179,14 @@ def checkStats(api):
         user = api.get_user(name)
 
         print('Followers: ' + str(user.followers_count))
-
         print('Tweets: ' + str(user.statuses_count))
-
         print('Likes: ' + str(user.favourites_count))
-    
         print('Friends: ' + str(user.friends_count))
-
         print('Appears on ' + str(user.listed_count) + ' lists')
-
         print("\n\n")
 
     except:
-        print("uh oh, incorrect name")
-        option = input("do you want to try again? y/n\n")
-        if option=='y':
+        if try_again(api,0:
             checkStats(api)
 
 
@@ -184,33 +197,23 @@ def checkSentMessage(api):
                         "2. Send a DM?\n")
                 )
 
-    if(option==1):
+    if option==1:
 
-        n = int( input("How many messages would you like to check?\n") )
+        n =get_n(1) 
         messages = api.direct_messages(count=n)
         for message in messages:
             print(message)
-    elif(option==2):
+
+    elif option==2:
         option= int( input( "Would you like to send a DM to\n"+
                             "1. Someone from your follower list\n"+
                             "2. Other\n") )
-        if(option==1):
-            i = 0
-            for friend in api.friends():
-                print(str(i) + ". " + friend.screen_name)
-                i+=1
-            index = int(input("Input number of selected friend\n"))
-            i = 0
-            name=''
-            for friend in api.friends():
-                if(i==index):
-                   name=friend.screen_name 
-                i+=1
+        if option==1:
+            name = get_friend(api)
             message = input("Type now the message\n")
-
             sendMessage(api, name, message)
 
-        elif(option==2):
+        elif option==2:
             name=input("Say exact name of account to send the DM to\n")
             message = input("Type message\n")     
 
@@ -225,6 +228,7 @@ def sendMessage(api, name, message):
         print("Message sent!")
     except:
         print("Uh oh, something didnt go as planned")
+        print("Going back to menu")
 
 
 def checkCurrentTrends(api):
@@ -236,32 +240,19 @@ def followUnfollow(api):
     option = int(input( "Would your like to\n"+
                         "1. Follow someone\n"+
                         "2. Unfollow someone\n"))
-    if(option==1):
+    if option==1:
         name=input("Say exact name of person to follow\n")
         try:
             api.create_friendship(name)
-            print("User followed!")
+            print("User %s followed!" % name)
         except:
-            print("oops, there was some error")
-    elif(option==2):
+            print("Oops, there was some error")
+    elif option==2:
         print("Choose who would you like to unfollow")
-        i = 1
-        for friend in api.friends():
-            print(str(i) + ". " + friend.screen_name)
-            i+=1
-
-        n=int(input())
-        i = 0
-        name=''
-        for friend in api.friends():
-            print(friend.screen_name)
-            if(i+1==n):
-               name=friend.screen_name 
-            i+=1   
-        print(name)
+        name = get_friend(api)
         try:
             api.destroy_friendship(name)
-            print("User unfollowed")
+            print("User %s unfollowed" % name)
         except:
             print("Oops, there was some error")
 
