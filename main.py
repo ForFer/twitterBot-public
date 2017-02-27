@@ -11,15 +11,12 @@ Github: ForFer
 
 
 import tweepy
+import configparser
 
 
 def Main():
-
-    consumer_key = ''
-    consumer_secret = ''
-
-    access_token = ''
-    access_token_secret = ''
+   
+    access_token, consumer_key, access_token_secret, consumer_secret = get_data()
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -65,6 +62,24 @@ def Main():
             print("uh oh, something went wrong, exitting program")
             run=False
 #Here ends the main
+
+def get_data():
+    config = configparser.ConfigParser()
+    config.read('config/oath.conf')
+    return [config['data'][x] for x in config['data']]
+
+def set_data(d1='',d2='',d3='',d4=''):
+    config = configparser.ConfigParser()
+    temp = {}
+    temp['consumer_key'] = d1
+    temp['consumer_secret'] = d2 
+
+    temp['access_token'] = d3
+    temp['access_token_secret'] = d4 
+    config['data'] = temp
+    with open('config/oath.conf', 'w') as conf:
+        config.write(conf)
+
 
 def get_user(api):
     return  input("Name of the user?\n")
@@ -129,7 +144,7 @@ def getTweets(api, again=0):
         try:
             print_tweets(api, user, n)
         except:
-            if try_again(api,0:
+            if try_again(api,0):
                 search_tweets(api,user,name)
 
     elif option is 'b':
@@ -148,7 +163,7 @@ def search_tweets(api,name="",n=0):
     try:
         print_tweets(api, user, n)
     except:
-        if try_again(api,0:
+        if try_again(api,0):
             getTweets(again=1)
     print("#########################################")
 
@@ -186,7 +201,7 @@ def checkStats(api):
         print("\n\n")
 
     except:
-        if try_again(api,0:
+        if try_again(api,0):
             checkStats(api)
 
 
