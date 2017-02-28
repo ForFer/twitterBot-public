@@ -9,15 +9,14 @@ Github: ForFer
 # If you want to make it work, just create your own OATH keys from the
 # twitter dev website, and past them on their variables
 
-
 import tweepy
 import configparser
 
 
 def Main():
-   
+     
     access_token, consumer_key, access_token_secret, consumer_secret = get_data()
-
+    
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
@@ -41,21 +40,21 @@ def Main():
         if option==1:
             tweet(api)
         elif option==2:
-            getTweets(api)
+            get_tweets(api)
         elif option==3:
-            deleteTweet(api)
+            delete_tweet(api)
         elif option==4:
-            viewOwnTweets(api)
+            view_own_tweets(api)
         elif option==5:
-            viewOwnRetweets(api)
+            view_own_retweets(api)
         elif option==6:
-            followUnfollow(api)
+            follow_unfollow(api)
         elif option==7:
-            checkStats(api)
+            check_stats(api)
         elif option==8:
-            checkSentMessage(api)
+            check_sent_message(api)
         elif option==9:
-            checkTrends(api)
+            check_trends(api)
         elif option==10:
             run=False
         else:
@@ -70,19 +69,20 @@ def get_data():
 
 def set_data(d1='',d2='',d3='',d4=''):
     config = configparser.ConfigParser()
-    temp = {}
-    temp['consumer_key'] = d1
-    temp['consumer_secret'] = d2 
+    data = {}
+    data['consumer_key'] = d1
+    data['consumer_secret'] = d2 
 
-    temp['access_token'] = d3
-    temp['access_token_secret'] = d4 
-    config['data'] = temp
+    data['access_token'] = d3
+    data['access_token_secret'] = d4 
+    config['data'] = data
+    
     with open('config/oath.conf', 'w') as conf:
         config.write(conf)
 
 
-def get_user(api):
-    return  input("Name of the user?\n")
+def get_user():
+    return input("Name of the user?\n")
 
 def tweet(api):
     status = input("Enter text to tweet\n")
@@ -91,12 +91,11 @@ def tweet(api):
 
 def print_tweets(api,user,n):
     tweets = api.user_timeline(screen_name = user,count=n)
-    i = 0
-    for tweet in tweets:
+    for i, tweet in enumerate(tweets):
         print(str(i) + '. ' +  tweet.text)
-        i+=1
 
-def try_again(api, error=1):
+#Maybe rethink
+def try_again(error=1):
     errorMessage = ''
     if error == 0:
         errorMessage="Wrong username"
@@ -108,31 +107,32 @@ def try_again(api, error=1):
     else:
         return False
 
-def get_n(option=0):
+def get_number_of(option=0):
     s = ''
-    if option==0:
+    if option == 0:
         s ="How many tweets do you want to see?\n"
-    elif option==1:
+    elif option == 1:
         s = "How many messages would you like to check?\n"
+    else:
+        s = "Input number"
     return int(input(s))
 
 
 def get_friend(api):
     print("List of friends")
-    i = 0
     friendList = []
-    for friend in api.friends():
+    for i, friend in enumerate(api.friends()):
         print(str(i) + ". " + friend.screen_name)
         friendList.append(friend.screen_name)
-        i+=1
+    
     index = int(input("Input number of selected friend\n"))
     try:
-        return friendList[n-1]
+        return friendList[index]
     except:
         return None
 
 
-def getTweets(api, again=0):
+def get_tweets(api, again=0):
     option = input("Would you like to search with\n"+ 
                    " a. Name\n"+                        
                    " b. From your list of friend\n"+        
@@ -140,16 +140,16 @@ def getTweets(api, again=0):
 
     if option is 'a' or again==1:
         user = get_user(api)
-        n = get_n(0)
+        n = get_number_of(0)
         try:
             print_tweets(api, user, n)
         except:
-            if try_again(api,0):
+            if try_again(0):
                 search_tweets(api,user,name)
 
     elif option is 'b':
         name = get_friend(api)
-        n = getNtweets()
+        n = get_number_of()
         search_tweets(api,name,n)
 
     elif option is 'c':
@@ -160,34 +160,32 @@ def getTweets(api, again=0):
 
 
 def search_tweets(api,name="",n=0):
+    
     try:
-        print_tweets(api, user, n)
+        print_tweets(api, name, n)
     except:
-        if try_again(api,0):
-            getTweets(again=1)
+        if try_again(0):
+            get_tweets(again=1)
     print("#########################################")
 
 
-def deleteTweet(api):
-    #http://www.mathewinkson.com/2015/03/delete-old-tweets-selectively-using-python-and-tweepy
+def delete_tweet(api):
     #TODO
     print("Delete tweets")
     #api.destroy_status(status.id)
 
-def viewOwnTweets(api):
-    n = get_n(0)
+def view_own_tweets(api):
+    n = get_number_of(0)
     print_tweets(api, '', n)
 
-def viewOwnRetweets(api):
-    n = get_n(0)
+def view_own_retweets(api):
+    n = get_number_of(0)
     public_retweets = api.retweets_of_me(count=n)
-    i = 1
-    for tweet in public_retweets:
+    for i,tweet in enumerate(public_retweets):
         print(str(i) + ". " + tweet.text)
-        i+=1
 
 
-def checkStats(api):
+def check_stats(api):
 
     name = input("Name of the account that you want stats from\n")
     try:
@@ -201,11 +199,11 @@ def checkStats(api):
         print("\n\n")
 
     except:
-        if try_again(api,0):
-            checkStats(api)
+        if try_again(0):
+            check_stats(api)
 
 
-def checkSentMessage(api):
+def check_sent_message(api):
 
     option = int(input( "Would you like to \n"+ 
                         "1. Check your own DM's?\n"+
@@ -214,7 +212,7 @@ def checkSentMessage(api):
 
     if option==1:
 
-        n =get_n(1) 
+        n =get_number_of(1) 
         messages = api.direct_messages(count=n)
         for message in messages:
             print(message)
@@ -251,7 +249,7 @@ def checkCurrentTrends(api):
     trends = api.trends_available()
 
 
-def followUnfollow(api):
+def follow_unfollow(api):
     option = int(input( "Would your like to\n"+
                         "1. Follow someone\n"+
                         "2. Unfollow someone\n"))
